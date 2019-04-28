@@ -116,13 +116,13 @@ function get_pocker_account(account)
       found = true
 
       info = {
-        total_win = a['total_win'],
-        total_loss = a['total_loss'],
+        profit = string.format("%4.4f EOS", tonumber(strings.split(a['total_win'], " ")[1]) - tonumber(strings.split(a['total_loss'], " ")[1])),
         wins = a['count_of_wins'],
         loses = a['count_of_defeats'],
+        total_win = a['total_win'],
+        total_loss = a['total_loss'],
         penalty = a['penalty'],
-        rake = a['rake'],
-        profit = string.format("%4.4f EOS", tonumber(strings.split(a['total_win'], " ")[1]) - tonumber(strings.split(a['total_loss'], " ")[1]))
+        rake = a['rake']
       }
     end
   end
@@ -136,11 +136,24 @@ function get_pocker_account(account)
 end
 
 
-function match_stats(string)
-    local string = string:match('^/account%s.*')
-    if string then
-       return true
-    else
-       return false
+function table_to_string(tbl)
+    local result = ""
+    for k, v in pairs(tbl) do
+        if type(k) == "string" then
+            result = result.." "..k.." ".."="
+        end
+                -- Check the value type
+        if type(v) == "table" then
+            result = result..table_to_string(v)
+        elseif type(v) == "boolean" then
+            result = result..tostring(v)
+        else
+            result = result.." "..v.." "
+        end
+        result = result.."\n"
     end
+    if result ~= "" then
+        result = result:sub(1, result:len()-1)
+    end
+    return result
 end

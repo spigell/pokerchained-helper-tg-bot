@@ -97,7 +97,7 @@ while true do
       	  info = get_pocker_account(account)
 
       	  if info ~= nil then
-      	    msg = msg..inspect(info)
+            msg = msg.."\n"..table_to_string(info)
       	  else
       	  	msg = "Account not found or some error occured. Account "..account.." exists?"
       	  end
