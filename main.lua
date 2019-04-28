@@ -54,7 +54,6 @@ while true do
       	body = get_body_tables()
 
         tables_info = get_basic_tables_info(body)
-        print(inspect(tables_info))
         reply_markup = {}
 
         reply_markup.inline_keyboard = {}
@@ -67,7 +66,6 @@ while true do
 
           table.insert(reply_markup.inline_keyboard, k, cl)
 
-          print(inspect(reply_markup.inline_keyboard))
         end
 
         count_tables = get_count_of_tables(body)
