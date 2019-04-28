@@ -1,0 +1,35 @@
+settings = {}
+
+settings.telegram = {
+  token = "XXXXXXX"
+}
+
+
+settings.node = {
+  address = "https://eos.greymass.com:443"
+}
+
+
+settings.pockerchained = {
+  contract = 'dcdpcontract'
+}
+
+settings.pockerchained.tables = {
+  code = settings.pockerchained.contract,
+  scope = settings.pockerchained.contract,
+  table = "tables",
+  json = true
+}
+
+settings.pockerchained.accounts = {
+  code = settings.pockerchained.contract,
+  scope = settings.pockerchained.contract,
+  table = "accounts",
+  json = true,
+  limit = 100000
+}
+
+
+
+
+return settings
