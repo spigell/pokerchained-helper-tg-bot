@@ -9,7 +9,7 @@ function bot_help(bot, upd)
     text = [[
 /help                        - this message
 /tables                      - get running tables
-/account <account name>      - get brief stats about player
+/account account name        - get brief stats about player
 ]]
   })
   if err then error(err) end
