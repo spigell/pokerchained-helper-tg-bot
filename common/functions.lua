@@ -122,7 +122,8 @@ function get_pocker_account(account)
         total_win = a['total_win'],
         total_loss = a['total_loss'],
         penalty = a['penalty'],
-        rake = a['rake']
+        rake = a['rake'],
+        last_connection_time = a['connection_time']
       }
     end
   end
