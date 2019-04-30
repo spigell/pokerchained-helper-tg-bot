@@ -3,18 +3,6 @@ local json = require("json")
 local inspect = require("inspect")
 local strings = require("strings")
 
-function bot_help(bot, upd)
-  local _, err = bot:sendMessage({
-    chat_id = upd.message.chat.id,
-    text = [[
-/help                        - this message
-/tables                      - get running tables
-/account account name        - get brief stats about player
-]]
-  })
-  if err then error(err) end
-end
-
 
 function build_nodeos_url(request_type, address)
   if request_type == 'table' then
@@ -157,4 +145,16 @@ function table_to_string(tbl)
         result = result:sub(1, result:len()-1)
     end
     return result
+end
+
+function get_player_name_from_command(command)
+
+  full_command = string.match(command, '^/account.*')
+  account, err = strings.split(full_command, " ")[2]
+  if err then 
+  	return nil 
+  else
+  	return account
+  end
+
 end

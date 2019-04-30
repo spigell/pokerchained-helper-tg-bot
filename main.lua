@@ -22,6 +22,7 @@ end
 
 local settings = require(settings_file)
 local functions = require("functions")
+local functions = require("telegram_functions")
 
 local log_level = os.getenv('LUA_BOT_LOG_LEVEL')
 if log_level == 'debug' then print(inspect(settings)) end 
@@ -46,82 +47,31 @@ while true do
 
   	if upd.message and upd.message.entities and upd.message.entities[1] then
 
-    if upd.message.entities[1].type == 'bot_command' then
-  	  command = upd.message.text
-  	  if strings.has_prefix(command, "/help") then
-  	  	bot_help(bot, upd)
-      elseif strings.has_prefix(command, "/tables") then
-      	body = get_body_tables()
+      if upd.message.entities[1].type == 'bot_command' then
+  	    command = upd.message.text
+  	    if strings.has_prefix(command, "/help") then
+  	  	  bot_help(bot, upd)
+  	    elseif strings.has_prefix(command, "/start") then
+  	  	  bot_start(bot, upd)
+        elseif strings.has_prefix(command, "/tables") then
+      	  tables(bot, upd)
 
-        tables_info = get_basic_tables_info(body)
-        reply_markup = {}
-
-        reply_markup.inline_keyboard = {}
-        for k,v in pairs(tables_info) do
-          big_blind = string.format("%4.4f", tonumber(v['sb']) * 2)
-
-          text = "Table ID:"..v['id'].." ( "..v['sb'].."/"..big_blind.." EOS, "..tostring(v['players_count'])..'/6 )'
-          callback_data_tables = v['id']
-          cl = { { text = text, callback_data = callback_data_tables} }
-
-          table.insert(reply_markup.inline_keyboard, k, cl)
-
-        end
-
-        count_tables = get_count_of_tables(body)
-        if count_tables == 0 then
-          msg = "There is no one on tables right now!"
+        elseif strings.has_prefix(command, "/account") then
+          local account = get_player_name_from_command(command)
+      	  sent_player_stats(bot, upd, account)
 
         else
-          msg = tostring(count_tables).." running tables. You can see addtional info by clicking on buttons below."
-        end  
-        local k, err = bot:sendMessage({
-          chat_id = upd.message.chat.id,
-          text = msg,
-	      reply_to_message_id = upd.message.message_id,
-          reply_markup = reply_markup
-        })
+  	  	  bot_help(bot, upd)
+  	    end
+  	  end
 
-        if err then error(err) end
-
-      elseif strings.has_prefix(command, "/account")then
-
-      	full_command = string.match(command, '^/account.*')
-
-      	account = strings.split(full_command, " ")[2]
-
-      	if account then 
-
-      	  msg = "Info about account "..account.."\n"
-
-      	  info = get_pocker_account(account)
-
-      	  if info ~= nil then
-            msg = msg.."\n"..table_to_string(info)
-      	  else
-      	  	msg = "Account not found or some error occured. Account "..account.." exists?"
-      	  end
-
-      	else
-      	  msg = 'Account name required'
-
-      	end
-
-        local _, err = bot:sendMessage({
-          chat_id = upd.message.chat.id,
-	      reply_to_message_id = upd.message.message_id,
-          text = msg
-        })
-
-      end
-    end
 
     elseif upd.callback_query then
-      body = get_body_tables()
+      local body = get_body_tables()
 
-      msg = "Info About Table with id "..upd.callback_query.data.."\n Players:"
+      local msg = "Info About Table with id "..upd.callback_query.data.."\n Players:"
 
-      info = get_detailed_table_info(body, upd.callback_query.data)
+      local info = get_detailed_table_info(body, upd.callback_query.data)
 
       local players_templates =  [[
   player:   %s
@@ -144,6 +94,12 @@ while true do
 
       })
 
+    elseif upd.message.reply_to_message then
+      if upd.message.reply_to_message.text == get_initial_player_message() then
+      	account = upd.message.text 
+    	sent_player_stats(bot, upd, account)
+      end
+
     elseif upd.edited_message then
       bot:sendMessage({
         chat_id = upd.edited_message.chat.id,
@@ -152,12 +108,20 @@ while true do
     })
 
     else
-      bot:sendMessage({
-        chat_id = upd.message.chat.id,
-        reply_to_message_id = upd.message.message_id,
-        text = "I do not understand you. Please use /help",
-    })
-    end
+      if upd.message.text == get_table_button() then
+      	tables(bot, upd)
+      elseif upd.message.text == get_player_info_button() then
+      	read_player_name(bot, upd)
+      elseif upd.message.text == 'My statistics' then
+      	send_current_user_stats(bot, upd)
+      else
+	    bot:sendMessage({
+	      chat_id = upd.message.chat.id,
+	      reply_to_message_id = upd.message.message_id,
+	      text = "I do not understand you. Please use /help",
+	    })
+	  end
+	end
   end
   time.sleep(0.5)
 end
