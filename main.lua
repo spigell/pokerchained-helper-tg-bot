@@ -58,7 +58,7 @@ while true do
 
         elseif strings.has_prefix(command, "/account") then
           local account = get_player_name_from_command(command)
-      	  sent_player_stats(bot, upd, account)
+          sent_player_stats(bot, upd.message, account)
 
         else
   	  	  bot_help(bot, upd)
@@ -67,37 +67,20 @@ while true do
 
 
     elseif upd.callback_query then
-      local body = get_body_tables()
 
-      local msg = "Info About Table with id "..upd.callback_query.data.."\n Players:"
-
-      local info = get_detailed_table_info(body, upd.callback_query.data)
-
-      local players_templates =  [[
-  player:   %s
-    stack:   %s
-	   ]]
-
-      for k,v in pairs(info) do
-      	player = string.format(
-      		players_templates,
-      		v['name'],
-      	    v['stack'])
-      	msg = msg.."\n"..player
-      end
-
-	  local k, err = bot:sendMessage({
-	    chat_id = upd.callback_query.message.chat.id,
-	    message_id = upd.callback_query.message.message_id,
-	    reply_to_message_id = upd.callback_query.message.message_id,
-	    text = msg
-
-      })
+      if strings.has_prefix(upd.callback_query.data, "/account") then
+        local account = get_player_name_from_command(upd.callback_query.data)
+        sent_player_stats(bot, upd.callback_query.message, account)
+      elseif strings.has_suffix(upd.callback_query.message.text, "clicking on buttons below.") then
+        sent_detailed_table_info(bot, upd)
+      else
+        print('[ WARN ] Unsupported callback query'..inspect(upd))
+	  end
 
     elseif upd.message.reply_to_message then
       if upd.message.reply_to_message.text == get_initial_player_message() then
       	account = upd.message.text 
-    	sent_player_stats(bot, upd, account)
+        sent_player_stats(bot, upd.message, account)
       end
 
     elseif upd.edited_message then

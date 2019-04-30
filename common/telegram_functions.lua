@@ -6,6 +6,7 @@ function bot_help(bot, upd)
     chat_id = upd.message.chat.id,
     text = [[
 /help                        - this message
+/start                       - start bot (show main menu)
 /tables                      - get running tables
 /account account name        - get brief stats about player
 ]]
@@ -69,11 +70,11 @@ function tables(bot, upd)
     if err then error(err) end
 end
 
-function sent_player_stats(bot, upd, account)
+function sent_player_stats(bot, data, account)
 
   	if account then 
 
-  	  msg = "Info about account "..account.."\n"
+      msg = "😎 Info about account *"..account.."*\n"
 
   	  info = get_pocker_account(account)
 
@@ -88,11 +89,48 @@ function sent_player_stats(bot, upd, account)
   	end
 
     local _, err = bot:sendMessage({
-      chat_id = upd.message.chat.id,
-      reply_to_message_id = upd.message.message_id,
-      text = msg
+      chat_id = data.chat.id,
+      text = msg,
+      parse_mode = 'Markdown'
     })
 
+end
+
+function sent_detailed_table_info(bot, upd)
+  local body = get_body_tables()
+
+  local msg = "Info About Table with id "..upd.callback_query.data.."\n Players:"
+
+  local info = get_detailed_table_info(body, upd.callback_query.data)
+
+  local players_templates =  [[
+  player:   %s
+    stack:   %s
+  ]]
+
+  reply_markup = {}
+
+  reply_markup.inline_keyboard = {}
+
+  for k,v in pairs(info) do
+    player = string.format(
+      players_templates,
+      v['name'],
+      v['stack'])
+      msg = msg.."\n"..player
+      cl = { { text = 'Stats for '..v['name'], callback_data = '/account '..v['name']} }
+      table.insert(reply_markup.inline_keyboard, k, cl)
+  end
+
+
+  local k, err = bot:sendMessage({
+  chat_id = upd.callback_query.message.chat.id,
+  message_id = upd.callback_query.message.message_id,
+  reply_to_message_id = upd.callback_query.message.message_id,
+  reply_markup = reply_markup,
+  text = msg
+
+  })
 end
 
 function read_player_name(bot, upd)

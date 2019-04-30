@@ -102,16 +102,22 @@ function get_pocker_account(account)
   for _, a in pairs(body['rows']) do
     if a['name_'] == account then
       found = true
+    if a['table_id_'][1] then
+      now_playing = "Yes. On table with id "..a['table_id_'][1]
+    else
+      now_playing = "No"
+    end
 
       info = {
+        totalWins = a['total_win'],
+        totalLoss = a['total_loss'],
         profit = string.format("%4.4f EOS", tonumber(strings.split(a['total_win'], " ")[1]) - tonumber(strings.split(a['total_loss'], " ")[1])),
         wins = a['count_of_wins'],
         loses = a['count_of_defeats'],
-        total_win = a['total_win'],
-        total_loss = a['total_loss'],
-        penalty = a['penalty'],
-        rake = a['rake'],
-        last_connection_time = a['connection_time']
+        penaltyCount = a['penalty_count'],
+        penaltyFee = a['penalty'],
+        nowPlaying = now_playing,
+        lastConnectionTime = a['connection_time']
       }
     end
   end

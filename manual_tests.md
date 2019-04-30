@@ -11,4 +11,9 @@ Accounts:
         wrong # => error
         empty # => error
   
-3) /tables
+Tables:
+  - /tables # => stats
+  menu:
+    - Tables:
+        table: # => right
+          account # => stats
