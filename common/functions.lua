@@ -112,6 +112,7 @@ function get_pocker_account(account)
         totalWins = a['total_win'],
         totalLoss = a['total_loss'],
         profit = string.format("%4.4f EOS", tonumber(strings.split(a['total_win'], " ")[1]) - tonumber(strings.split(a['total_loss'], " ")[1])),
+        rake = a['rake'],
         wins = a['count_of_wins'],
         loses = a['count_of_defeats'],
         penaltyCount = a['penalty_count'],
