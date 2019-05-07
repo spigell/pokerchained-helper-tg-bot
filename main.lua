@@ -77,7 +77,7 @@ while true do
         print('[ WARN ] Unsupported callback query'..inspect(upd))
 	  end
 
-    elseif upd.message.reply_to_message then
+    elseif upd.message and upd.message.reply_to_message then
       if upd.message.reply_to_message.text == get_initial_player_message() then
       	account = upd.message.text 
         sent_player_stats(bot, upd.message, account)
