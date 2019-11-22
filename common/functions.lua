@@ -1,167 +1,67 @@
-local http = require("http")
-local json = require("json")
-local inspect = require("inspect")
-local strings = require("strings")
+local http = require('http')
+local json = require('json')
+local strings = require('strings')
 
+local functions = {}
 
-function build_nodeos_url(request_type, address)
+function functions.build_nodeos_url(request_type, address)
   if request_type == 'table' then
-  	api_uri = '/v1/chain/get_table_rows'
+    api_uri = '/v1/chain/get_table_rows'
   else
-  	print('[ ERROR ] Not supported type for building url')
-  	os.exit(1)
+    print('[ ERROR ] Not supported type for building url')
+    os.exit(1)
   end
-
-  nodeos_url = address..api_uri
+  
+  nodeos_url = address .. api_uri
   return nodeos_url
 end
 
-function make_nodeos_request(nodeos_url, data)
-
-  local client = http.client({insecure_ssl=true})
-
+function functions.make_nodeos_request(nodeos_url, data)
+  
+  local client = http.client({insecure_ssl = true})
+  
   local body = json.encode(data)
-
+  
   local request = http.request("POST", nodeos_url, body)
   local result, err = client:do_request(request)
-
-    if not(result.code == 200) then
-      print(result.body)
-      error('bad http code - '..result.code)
-    end
-
+  
+  if not(result.code == 200) then
+    print(result.body)
+    error('bad http code - '..result.code)
+  end
   return json.decode(result.body)
-
+  
 end
-
-
-function get_count_of_tables(body)
-  if table.getn(body['rows']) then
-    return table.getn(body['rows'])
-  else
-  	return 0
-  end
-end
-
-function get_basic_tables_info(body)
-  basic_info = {}
-  for n, row in pairs(body['rows']) do
-  	info = {
-      id = row['id'],
-      players_count = row['players_count'],
-      sb = strings.split(row['small_blind'], " ")[1]
-    }
-
-    table.insert(basic_info, n, info)
-
-
-  end
-
-  return basic_info
-end
-
-function get_detailed_table_info(body, id)
-  for k, v in pairs(body['rows']) do
-
-  	if v['id'] == tonumber(id) then
-	  info = {}
-
-  	  players = {}
-
-  	  for i, player in pairs(v['players']) do
-
-
-  	  	k = {
-  	  	  name = player['name'],
-  	  	  stack = player['stack']
-  	    }
-
-  	  	table.insert(players, i, k)
-  	  end
-
+function functions.table_to_string(tbl)
+  local result = ""
+  for k, v in pairs(tbl) do
+    if type(k) == "string" then
+      result = result.." "..k.." " .. "="
     end
-  end
-  return players
-
-
-end
-
-function get_body_tables()
-  local nodeos_url = build_nodeos_url('table', settings.node.address)
-  --if log_level == 'debug' then print('[ DEBUG ] Node url is '..nodeos_url) end
-
-  local body = make_nodeos_request(nodeos_url, settings.pockerchained.tables)
-  return body
-end
-
-function get_pocker_account(account)
-  local nodeos_url = build_nodeos_url('table', settings.node.address)
-  local body = make_nodeos_request(nodeos_url, settings.pockerchained.accounts)
-  found = false
-
-  for _, a in pairs(body['rows']) do
-    if a['name_'] == account then
-      found = true
-    if a['table_id_'][1] then
-      now_playing = "Yes. On table with id "..a['table_id_'][1]
+    -- Check the value type
+    if type(v) == "table" then
+      result = result..table_to_string(v)
+    elseif type(v) == "boolean" then
+      result = result..tostring(v)
     else
-      now_playing = "No"
+      result = result.." "..v.." "
     end
-
-      info = {
-        totalWins = a['total_win'],
-        totalLoss = a['total_loss'],
-        profit = string.format("%4.4f EOS", tonumber(strings.split(a['total_win'], " ")[1]) - tonumber(strings.split(a['total_loss'], " ")[1])),
-        rake = a['rake'],
-        wins = a['count_of_wins'],
-        loses = a['count_of_defeats'],
-        penaltyCount = a['penalty_count'],
-        penaltyFee = a['penalty'],
-        nowPlaying = now_playing,
-        lastConnectionTime = a['connection_time']
-      }
-    end
+    result = result.."\n"
   end
-
-  if found == false then
-    print(" [ WARN ] Account "..account.." not found")
-      return nil
-  else
-      return info
+  if result ~= "" then
+    result = result:sub(1, result:len() - 1)
   end
+  return result
 end
 
-
-function table_to_string(tbl)
-    local result = ""
-    for k, v in pairs(tbl) do
-        if type(k) == "string" then
-            result = result.." "..k.." ".."="
-        end
-                -- Check the value type
-        if type(v) == "table" then
-            result = result..table_to_string(v)
-        elseif type(v) == "boolean" then
-            result = result..tostring(v)
-        else
-            result = result.." "..v.." "
-        end
-        result = result.."\n"
-    end
-    if result ~= "" then
-        result = result:sub(1, result:len()-1)
-    end
-    return result
-end
-
-function get_player_name_from_command(command)
-
+function functions.get_player_name_from_command(command)
   full_command = string.match(command, '^/account.*')
   account, err = strings.split(full_command, " ")[2]
-  if err then 
-  	return nil 
+  if err then
+    return nil
   else
-  	return account
+    return account
   end
-
 end
+
+return functions

@@ -1,7 +1,15 @@
-inspect = require("inspect")
-strings = require("strings")
+local inspect   = require('inspect')
+local strings   = require('strings')
+local filepath  = require('filepath')
 
-function bot_help(bot, upd)
+package.path    = filepath.dir(debug.getinfo(1).source) .. '/../eos/?.lua;'.. package.path
+package.path    = filepath.dir(debug.getinfo(1).source) .. '/../common/?.lua;'.. package.path
+local contract  = require('contract')
+local functions = require('functions')
+
+local utils = {}
+
+function utils.bot_help(bot, upd)
   local _, err = bot:sendMessage({
     chat_id = upd.message.chat.id,
     text = [[
@@ -14,16 +22,15 @@ function bot_help(bot, upd)
   if err then error(err) end
 end
 
-function bot_start(bot, upd)
+function utils.bot_start(bot, upd)
   keyboard = { { get_table_button() }, { get_player_info_button() } }
   reply_markup = {}
 
   reply_markup = {
     keyboard = keyboard,
     resize_keyboard = true,
-    one_time_keyboard = true
+    one_time_keyboard = false
   }
-  print(inspect(reply_markup))
 
   local _, err = bot:sendMessage({
     chat_id = upd.message.chat.id,
@@ -34,11 +41,11 @@ function bot_start(bot, upd)
   if err then error(err) end
 end
 
-function tables(bot, upd)
+function utils.send_tables(bot, upd)
 
-  	body = get_body_tables()
+  	body = contract.get_body_tables(settings.networks.current.address)
 
-    tables_info = get_basic_tables_info(body)
+    tables_info = contract.get_basic_tables_info(body)
     reply_markup = {}
 
     reply_markup.inline_keyboard = {}
@@ -53,7 +60,7 @@ function tables(bot, upd)
 
     end
 
-    count_tables = get_count_of_tables(body)
+    count_tables = contract.get_count_of_tables(body)
     if count_tables == 0 then
       msg = "There is no one on tables right now!"
 
@@ -70,16 +77,16 @@ function tables(bot, upd)
     if err then error(err) end
 end
 
-function sent_player_stats(bot, data, account)
+function utils.sent_player_stats(bot, data, account)
 
   	if account then 
 
       msg = "😎 Info about account *"..account.."*\n"
 
-  	  info = get_pocker_account(account)
+  	  info = contract.get_poker_account(account)
 
-  	  if info ~= nil then
-        msg = msg.."\n"..table_to_string(info)
+  	  if not (info == nil) then
+        msg = msg .. "\n" .. functions.table_to_string(info)
   	  else
   	  	msg = "Account not found or some error occured. Account "..account.." exists? Is it a pokerchained player?"
   	  end
@@ -96,12 +103,12 @@ function sent_player_stats(bot, data, account)
 
 end
 
-function sent_detailed_table_info(bot, upd)
-  local body = get_body_tables()
+function utils.sent_detailed_table_info(bot, upd)
+  local body = contract.get_body_tables(settings.networks.current.address)
 
-  local msg = "Info About Table with id "..upd.callback_query.data.."\n Players:"
+  local msg = "Info About Table with id "..upd.callback_query.data .. "\n Players:"
 
-  local info = get_detailed_table_info(body, upd.callback_query.data)
+  local info = contract.get_detailed_table_info(body, upd.callback_query.data)
 
   local players_templates =  [[
   player:   %s
@@ -117,8 +124,8 @@ function sent_detailed_table_info(bot, upd)
       players_templates,
       v['name'],
       v['stack'])
-      msg = msg.."\n"..player
-      cl = { { text = 'Stats for '..v['name'], callback_data = '/account '..v['name']} }
+      msg = msg .. "\n" .. player
+      cl = { { text = 'Stats for ' .. v['name'], callback_data = '/account ' .. v['name']} }
       table.insert(reply_markup.inline_keyboard, k, cl)
   end
 
@@ -133,7 +140,7 @@ function sent_detailed_table_info(bot, upd)
   })
 end
 
-function read_player_name(bot, upd)
+function utils.ask_player_name(bot, upd)
   msg = get_initial_player_message()
   reply_markup = {
     force_reply = true
@@ -148,7 +155,7 @@ function read_player_name(bot, upd)
 
 end
 
-function send_current_user_stats(bot, upd)
+function utils.send_current_user_stats(bot, upd)
   local _, err = bot:sendMessage({
     chat_id = upd.message.chat.id,
     text = "😔 Not implemented yet. Sorry.",
@@ -168,3 +175,5 @@ end
 function get_player_info_button()
   return "😎 Player info"
 end
+
+return utils

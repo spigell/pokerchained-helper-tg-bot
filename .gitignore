@@ -1,3 +1,4 @@
 
 common/settings-*.lua
+settings-*.yml
 *.sublime-workspace
