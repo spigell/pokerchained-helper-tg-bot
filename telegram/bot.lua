@@ -52,7 +52,7 @@ function check()
           print(inspect(upd.message))
           utils.sent_player_stats(bot, upd.message, account)
         else
-  	  	  bot_help(bot, upd)
+  	  	  utils.bot_help(bot, upd)
   	    end
   	  end
 

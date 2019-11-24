@@ -34,7 +34,7 @@ function utils.bot_start(bot, upd)
 
   local _, err = bot:sendMessage({
     chat_id = upd.message.chat.id,
-    text = "Hi! I am bot for [PockerChained](https://pokerchained.com). Author - @Spigell. Please use buttons or read /help",
+    text = "Hi! I am bot for [PokerChained](https://pokerchained.com). Author - @Spigell. Please use buttons or read /help",
     reply_markup = reply_markup,
     parse_mode = "Markdown"
   })
