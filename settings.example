@@ -8,7 +8,3 @@ telegram:
 networks:
   current: 
     address: 'http://fork-api-1.pokerchained.com'
-
-  abandoned:
-    mainnet:
-      address: 'https://eos.greymass.com:443'

@@ -24,6 +24,14 @@ contract.accounts = {
   limit = 1000000
 }
 
+contract.accounts.history = {
+  code  = 'acntcontract',
+  scope = 'acntcontract',
+  table = 'accounts',
+  json  = true,
+  limit = 1000000
+}
+
 
 function contract.get_count_of_tables(body)
   if table.getn(body['rows']) then
@@ -116,7 +124,27 @@ function contract.get_poker_account(account)
       end
     end
   end
-
+  if contract.accounts.history then
+    local nodeos_url = functions.build_nodeos_url('table', settings.networks.current.address)
+    local history_accounts_info = functions.make_nodeos_request(nodeos_url, contract.accounts.history)
+    for _, history_network_account in pairs(history_accounts_info['rows']) do
+      if history_network_account['name'] == account then
+        if found == false then
+          print('asdfsafd')
+    	    found = true
+          current_network_player_summary = history_network_account
+        else
+    	    current_network_player_summary['rake']          = string.format("%4.4f EOS", tonumber(strings.split(current_network_player_summary['rake'], " ")[1]) + tonumber(strings.split(history_network_account['rake'], " ")[1]))
+    	    current_network_player_summary['total_win']     = string.format("%4.4f EOS", tonumber(strings.split(current_network_player_summary['total_win'], " ")[1]) + tonumber(strings.split(history_network_account['total_win'], " ")[1]))
+    	    current_network_player_summary['total_loss']    = string.format("%4.4f EOS", tonumber(strings.split(current_network_player_summary['total_loss'], " ")[1]) + tonumber(strings.split(history_network_account['total_loss'], " ")[1]))
+    	    current_network_player_summary['count_of_wins'] = current_network_player_summary['count_of_wins'] + history_network_account['count_of_wins']
+    	    current_network_player_summary['count_of_defeats'] = current_network_player_summary['count_of_defeats'] + history_network_account['count_of_defeats']
+    	    current_network_player_summary['penalty_count'] = current_network_player_summary['penalty_count'] + history_network_account['penalty_count']
+    	    current_network_player_summary['penalty']       = string.format("%4.4f EOS", tonumber(strings.split(current_network_player_summary['penalty'], " ")[1]) + tonumber(strings.split(history_network_account['penalty'], " ")[1]))
+        end
+      end
+    end
+  end
 
   if found == false then
     print(" [ WARN ] Account "..account.." not found")
